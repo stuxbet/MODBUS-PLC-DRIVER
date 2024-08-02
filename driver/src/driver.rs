@@ -1,7 +1,8 @@
 // use std::sync::Arc;
-use std::net::SocketAddr;
-use crate::errors::PLCError;
-use tokio;
+use std::{net::SocketAddr, sync::Arc};
+use crate::{errors::PLCError, PLCCard};
+use client::Context;
+use tokio::{self, sync::Mutex};
 use tokio_modbus::prelude::*;
 
 
@@ -18,43 +19,44 @@ pub struct PLCDriver {
     pub config:DriverConfig,
     pub number_of_cards:u32,
     pub cards:Vec<PLCCard>,
+    pub connection:Arc<Mutex<Context>>,
+    
 }
 
 impl PLCDriver {
 
     pub async fn connect(config:DriverConfig) -> Result<PLCDriver, PLCError> {
     
-        //connect to addresss
-        let mut context = tcp::connect(config.address).await.unwrap();
+        //connect to addresss and return error if it cant
+        let context = match tcp::connect(config.address).await {
+            Ok(con) => con,
+            Err(_) => return Err(PLCError::Initialization("Can not connect to plc".to_string())),
+        };
 
         let driver = PLCDriver{
-                config,
-                number_of_cards:0,
-                cards: Vec::new(),   
+            config,
+            number_of_cards:0,
+            cards: Vec::new(),  
+            connection:Arc::new(Mutex::new(context))
         };
 
         Ok(driver)
     }
 
-    pub fn add_card(self){
-        //this method will append a card to our driver
+    pub fn add_card(&mut self, card:PLCCard){
+        self.cards.push(card);
+
+        println!("Added card bitch");
+
+        println!("This what we looking at:");
+        for given_card in self.cards.clone(){
+            println!("{:?}",given_card );
+            
+        }
+        println!("");
+
     }
 
 }
 
 
-#[derive(Debug, Clone)]
-pub enum PLCCard{
-    AnalogInput(AnalogInputCard),
-    AnalogOutput(AnalogOutputCard),
-    DigitalInput(DigitalInputCard),
-    DigitalOutput(DigitalOutputCard)
-}
-#[derive(Debug, Clone)]
-pub struct AnalogInputCard {}
-#[derive(Debug, Clone)]
-pub struct AnalogOutputCard {}
-#[derive(Debug, Clone)]
-pub struct DigitalInputCard {}
-#[derive(Debug, Clone)]
-pub struct DigitalOutputCard {}

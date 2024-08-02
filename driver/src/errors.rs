@@ -6,6 +6,7 @@ pub enum PLCError{
     FailedToRecieve(String),
     Disconnected(),
     Initialization(String),
+    
 }
 impl Error for PLCError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
@@ -19,6 +20,7 @@ impl fmt::Display for PLCError {
             PLCError::FailedToRecieve(ref msg) => write!(f, "RecieveError: {}", msg),
             PLCError::Disconnected() => write!(f, "PLC appears to be disconnected"),
             PLCError::Initialization(ref msg) => write!(f, "Could not initialize: {}", msg)
+
         }
     }
 }

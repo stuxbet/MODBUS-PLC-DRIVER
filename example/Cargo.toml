@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 driver = {path="../driver"}
+tokio = { version = "1.29.1", features = ["full"] }
